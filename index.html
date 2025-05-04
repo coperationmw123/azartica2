@@ -894,6 +894,12 @@
       }
     `;
     document.head.appendChild(style);
+
+    .reel .symbols.spinning {
+      transition: transform 0.2s cubic-bezier(0.33,1,0.68,1);
+      will-change: transform;
+      filter: blur(2px);
+    }
   </style>
 </head>
 <body>
@@ -1762,41 +1768,66 @@
         winAmount = 0;
       }
 
-      // Для поочерёдной анимации
-      reels.forEach((reel, idx) => {
+      // --- Новый блок: анимация вращения барабанов ---
+      function spinReel(reel, duration, finalSymbols) {
         const symbolsDiv = reel.querySelector('.symbols');
-        symbolsDiv.innerHTML = '';
-        // Заполняем временными символами для анимации
-        for (let i = 0; i < 10; i++) {
+        let position = 0;
+        let spinning = true;
+        let spinInterval;
+        // Создаём длинную ленту символов
+        let spinSymbols = [];
+        for (let i = 0; i < 30; i++) {
           const s = document.createElement('div');
           s.className = 'symbol';
           s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
-          symbolsDiv.appendChild(s);
+          spinSymbols.push(s);
         }
-        symbolsDiv.style.animation = `spinReelMulti 1.2s cubic-bezier(0.33,1,0.68,1) ${idx * 0.3}s forwards`;
-      });
+        symbolsDiv.innerHTML = '';
+        spinSymbols.forEach(s => symbolsDiv.appendChild(s));
+        symbolsDiv.classList.add('spinning');
+        symbolsDiv.style.transform = 'translateY(0px)';
+        let step = 0;
+        let speed = 32; // px per frame
+        let maxPosition = (spinSymbols.length - 3) * 90; // 3 видимых символа
 
-      // После анимации — подставляем итоговые символы и убираем анимацию
-      reels.forEach((reel, idx) => {
+        function animate() {
+          if (!spinning) return;
+          position += speed;
+          if (position > maxPosition) position = 0;
+          symbolsDiv.style.transform = `translateY(-${position}px)`;
+          step++;
+          // Замедление к концу
+          if (step > duration * 0.7 / 16) speed = Math.max(8, speed * 0.97);
+          spinInterval = requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Остановка через duration мс
         setTimeout(() => {
-          const symbolsDiv = reel.querySelector('.symbols');
+          spinning = false;
+          cancelAnimationFrame(spinInterval);
+          // Показываем итоговые символы
           symbolsDiv.innerHTML = '';
           for (let i = 0; i < 3; i++) {
             const s = document.createElement('div');
             s.className = 'symbol';
-            if (winType === 'big') {
-              s.textContent = '💎';
-            } else if (winType === 'medium') {
-              s.textContent = '⭐';
-            } else if (winType === 'small') {
-              s.textContent = '🍒';
-            } else {
-              s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
-            }
+            s.textContent = finalSymbols[i];
             symbolsDiv.appendChild(s);
           }
-          symbolsDiv.style.animation = '';
-        }, 1200 + idx * 300);
+          symbolsDiv.classList.remove('spinning');
+          symbolsDiv.style.transform = 'translateY(0px)';
+        }, duration);
+      }
+
+      // Определяем итоговые символы для каждого барабана
+      let finalSymbols = [];
+      if (winType === 'big') finalSymbols = ['💎','💎','💎'];
+      else if (winType === 'medium') finalSymbols = ['⭐','⭐','⭐'];
+      else if (winType === 'small') finalSymbols = ['🍒','🍒','🍒'];
+      else finalSymbols = Array.from({length: 3}, () => symbolsList[Math.floor(Math.random() * symbolsList.length)]);
+
+      reels.forEach((reel, idx) => {
+        spinReel(reel, 1200 + idx * 350, [finalSymbols[idx], finalSymbols[idx], finalSymbols[idx]]);
       });
 
       // Проверяем результат после остановки всех барабанов
@@ -1811,7 +1842,7 @@
         if (autoSpinsLeft > 0) {
           setTimeout(() => spinBtn.click(), 1000);
         }
-      }, 1200 + reels.length * 300);
+      }, 1200 + reels.length * 350);
     });
 
     autoSpinBtn.addEventListener('click', () => {
@@ -2070,4 +2101,5 @@
     });
   </script>
 </body>
+</html>
 </html>
