@@ -1050,14 +1050,6 @@
         <!-- Пакеты монет будут добавлены JS -->
       </div>
       <div style="margin: 18px 0; text-align:center;">
-        <button id="custom-amount-btn" class="copy-btn" style="margin-bottom:10px;">Указать своё количество монет</button>
-        <div id="custom-amount-block" style="display:none; margin-top:10px;">
-          <input id="custom-amount-input" type="number" min="1" max="100000" placeholder="Введите количество монет" style="padding:8px; border-radius:8px; border:1px solid #ffe066; width:60%; color:#ffe066; background:rgba(40,20,60,0.18);">
-          <span id="custom-amount-price" style="margin-left:10px; color:#ffe066;"></span>
-          <button id="custom-buy-btn" class="copy-btn" style="margin-left:10px;">Купить</button>
-        </div>
-      </div>
-      <div style="margin: 18px 0; text-align:center;">
         <div style="margin-bottom:8px; color:#ffe066; font-weight:bold;">Доступные способы оплаты:</div>
         <div id="payment-icons" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; align-items:center;">
           <img src="https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png" alt="Visa" style="height:32px; background:#fff; border-radius:6px; padding:2px 8px;">
@@ -2078,25 +2070,6 @@
     document.getElementById('country-select').addEventListener('change', function() {
       selectedCountry = this.value;
       renderTopupTiers();
-      document.getElementById('custom-amount-input').value = '';
-      document.getElementById('custom-amount-price').textContent = '';
-    });
-    document.getElementById('custom-amount-btn').addEventListener('click', function() {
-      const block = document.getElementById('custom-amount-block');
-      block.style.display = block.style.display === 'none' ? '' : 'none';
-    });
-    document.getElementById('custom-amount-input').addEventListener('input', function() {
-      const val = parseInt(this.value, 10);
-      if (!val || val < 1) {
-        document.getElementById('custom-amount-price').textContent = '';
-        return;
-      }
-      // 100 монет = 1.5$
-      const usd = (val / 100) * 1.5;
-      document.getElementById('custom-amount-price').textContent = getLocalPrice(usd);
-    });
-    document.getElementById('custom-buy-btn').addEventListener('click', function() {
-      document.getElementById('topup-popup').style.display = 'flex';
     });
     // Первичная отрисовка
     renderTopupTiers();
