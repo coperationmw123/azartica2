@@ -2025,10 +2025,10 @@
 
     // --- JS для раздела Пополнить ---
     const topupTiers = [
-      { coins: 100, usd: 1.5 },
-      { coins: 500, usd: 4.5 },
-      { coins: 1200, usd: 8.99 },
-      { coins: 3000, usd: 19.99 }
+      { name: 'МИНИ', coins: 5000, usd: 2, bonus: 0, desc: 'Попробовать' },
+      { name: 'СТАНДАРТ', coins: 15000, usd: 5, bonus: 0.05, desc: 'Играть иногда' },
+      { name: 'ПРО', coins: 50000, usd: 15, bonus: 0.15, desc: 'Играть много' },
+      { name: 'VIP', coins: 225000, usd: 50, bonus: 0.25, desc: 'Фанаты / Донаторы' }
     ];
     const countryRates = {
       RU: { name: 'Россия', symbol: '₽', rate: 92, round: 10 },
@@ -2054,9 +2054,21 @@
       const container = document.getElementById('topup-tiers');
       container.innerHTML = '';
       topupTiers.forEach((tier, idx) => {
+        let bonusText = '';
+        if (tier.bonus > 0) {
+          bonusText = `<li><b>Бонус: +${Math.round(tier.bonus*100)}%</b></li>`;
+        }
         const div = document.createElement('div');
         div.className = 'donate-tier';
-        div.innerHTML = `<div class="tier-header">${tier.coins} монет</div><div class="tier-price">${getLocalPrice(tier.usd)}</div><ul class="tier-rewards"><li>Цена в $: ${tier.usd.toFixed(2)}</li></ul><button class="copy-btn buy-btn big-buy-btn" data-idx="${idx}">Купить</button>`;
+        div.innerHTML = `
+          <div class="tier-header">${tier.name}</div>
+          <div class="tier-price">${tier.coins.toLocaleString()} монет</div>
+          <ul class="tier-rewards">
+            <li>Цена: $${tier.usd.toFixed(2)} (${getLocalPrice(tier.usd)})</li>
+            ${bonusText}
+          </ul>
+          <button class="copy-btn buy-btn big-buy-btn" data-idx="${idx}">Купить</button>
+        `;
         container.appendChild(div);
       });
       // Кнопки Купить
