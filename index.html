@@ -900,6 +900,17 @@
       will-change: transform;
       filter: blur(2px);
     }
+
+    @keyframes win-pulse {
+      0% { transform: scale(1); filter: drop-shadow(0 0 0 gold); }
+      50% { transform: scale(1.2); filter: drop-shadow(0 0 16px gold); }
+      100% { transform: scale(1); filter: drop-shadow(0 0 0 gold); }
+    }
+    .symbol.win {
+      animation: win-pulse 0.7s ease 2;
+      z-index: 2;
+      position: relative;
+    }
   </style>
 </head>
 <body>
@@ -1769,7 +1780,7 @@
       }
 
       // --- Новый блок: анимация вращения барабанов ---
-      function spinReel(reel, duration, finalSymbols) {
+      function spinReel(reel, duration, finalSymbols, isWinSymbol) {
         const symbolsDiv = reel.querySelector('.symbols');
         let position = 0;
         let spinning = true;
@@ -1812,6 +1823,7 @@
             const s = document.createElement('div');
             s.className = 'symbol';
             s.textContent = finalSymbols[i];
+            if (isWinSymbol) s.classList.add('win');
             symbolsDiv.appendChild(s);
           }
           symbolsDiv.classList.remove('spinning');
@@ -1821,13 +1833,20 @@
 
       // Определяем итоговые символы для каждого барабана
       let finalSymbols = [];
-      if (winType === 'big') finalSymbols = ['💎','💎','💎'];
-      else if (winType === 'medium') finalSymbols = ['⭐','⭐','⭐'];
-      else if (winType === 'small') finalSymbols = ['🍒','🍒','🍒'];
-      else finalSymbols = Array.from({length: 3}, () => symbolsList[Math.floor(Math.random() * symbolsList.length)]);
+      let winSymbols = [false, false, false];
+      if (winType === 'big') { finalSymbols = ['💎','💎','💎']; winSymbols = [true, true, true]; }
+      else if (winType === 'medium') { finalSymbols = ['⭐','⭐','⭐']; winSymbols = [true, true, true]; }
+      else if (winType === 'small') { finalSymbols = ['🍒','🍒','🍒']; winSymbols = [true, true, true]; }
+      else {
+        finalSymbols = Array.from({length: 3}, () => symbolsList[Math.floor(Math.random() * symbolsList.length)]);
+        // Если все три совпали — тоже подсветить
+        if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
+          winSymbols = [true, true, true];
+        }
+      }
 
       reels.forEach((reel, idx) => {
-        spinReel(reel, 1200 + idx * 350, [finalSymbols[idx], finalSymbols[idx], finalSymbols[idx]]);
+        spinReel(reel, 1200 + idx * 350, [finalSymbols[idx], finalSymbols[idx], finalSymbols[idx]], winSymbols[idx]);
       });
 
       // Проверяем результат после остановки всех барабанов
