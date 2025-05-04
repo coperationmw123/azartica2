@@ -1750,10 +1750,19 @@
     }
 
     spinBtn.addEventListener('click', async()=>{
-      if (spinBtn.disabled && autoSpinsLeft === 0) return; // Не даём вручную крутить, если кнопка заблокирована и не идёт авто-спин
-      spinBtn.disabled = true; // Блокируем кнопку на время спина
+      // Блокируем кнопки на время спина
+      spinBtn.disabled = true;
+      autoSpinBtn.disabled = true;
       const bet = +betSelect.value;
-      if (balance < bet) { alert('Недостаточно монет!'); spinBtn.disabled = false; return; }
+      if (balance < bet) { 
+        alert('Недостаточно монет!'); 
+        // Разблокируем кнопки, если не хватает монет и автоспинов нет
+        if (autoSpinsLeft === 0) {
+          spinBtn.disabled = false;
+          autoSpinBtn.disabled = false;
+        }
+        return; 
+      }
       if (autoSpinsLeft > 0 && autoSpinsLeft <= 3) {
         autoSpinsLeft--;
       }
@@ -1863,22 +1872,20 @@
         if (autoSpinsLeft > 0) {
           setTimeout(() => spinBtn.click(), 1000);
         } else {
-          autoSpinBtn.disabled = false; // Разблокируем кнопку авто-спин
-          spinBtn.disabled = false;     // Разблокируем кнопку крутить
+          // Разблокируем кнопки только если автоспинов больше нет
+          spinBtn.disabled = false;
+          autoSpinBtn.disabled = false;
         }
       }, 1200 + reels.length * 350);
     });
 
     autoSpinBtn.addEventListener('click', () => {
-      if (autoSpinBtn.disabled) return; // Не даём повторно запускать
       const bet = +betSelect.value;
       if (balance < bet * 3) {
         alert('Недостаточно монет для 3 спинов!');
         return;
       }
       autoSpinsLeft = 3;
-      autoSpinBtn.disabled = true; // Блокируем кнопку авто-спин
-      spinBtn.disabled = true;     // Блокируем кнопку крутить
       spinBtn.click();
     });
 
