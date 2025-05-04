@@ -894,6 +894,49 @@
       }
     `;
     document.head.appendChild(style);
+
+    /* --- SVG-символы для слота --- */
+    .symbol {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 90px;
+      background: linear-gradient(120deg, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.12) 100%);
+      border-radius: 8px;
+      transition: box-shadow 0.3s, background 0.3s;
+    }
+    .slot-symbol-img {
+      width: 64px;
+      height: 64px;
+      display: block;
+      filter: drop-shadow(0 0 12px #ffe06688) drop-shadow(0 2px 8px #2D1B4A44);
+      transition: transform 0.25s cubic-bezier(.5,1.5,.5,1), filter 0.25s;
+      will-change: transform, filter;
+    }
+    .symbol.win .slot-symbol-img {
+      animation: win-bounce 0.7s cubic-bezier(.5,1.5,.5,1);
+      filter: drop-shadow(0 0 32px #ffd700cc) drop-shadow(0 2px 16px #ffb300cc);
+      z-index: 2;
+    }
+    @keyframes win-bounce {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.25) rotate(-8deg); }
+      60% { transform: scale(0.95) rotate(6deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .symbol.lose .slot-symbol-img {
+      opacity: 0.6;
+      filter: grayscale(0.7) blur(1px);
+    }
+    .reel {
+      box-shadow: 0 0 32px 0 #ffe06633, 0 5px 18px #2D1B4A, 0 1.5px 0 #ffe066 inset;
+      border: 3px solid #ffe066;
+      background: radial-gradient(circle at 60% 40%, #ffe06622 0%, #2D1B4A 100%);
+      position: relative;
+      overflow: hidden;
+    }
   </style>
 </head>
 <body>
@@ -1119,9 +1162,9 @@
     </div>
   </div>
 
-  <button id="music-toggle" style="position:fixed;top:20px;left:20px;padding:10px 16px;background:linear-gradient(120deg,#24143a 60%,#3a2560 100%);color:#ffe066;border:2px solid #ffe066;border-radius:50px;font-weight:bold;cursor:pointer;box-shadow:0 3px 10px #2D1B4A;z-index:1001;transition:transform 0.2s,box-shadow 0.2s;font-size:1.3em;display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span id="music-icon" aria-label="Музыка">🎵</span>
-  </button>
+  <audio id="spin-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b16cfba0d.mp3?filename=slot-machine-1-6413.mp3"></audio>
+  <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+  <audio id="coin-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-coins-handling-1939.mp3"></audio>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -1145,16 +1188,25 @@
     const modal = document.getElementById("daily-bonus-modal");
     const claimBtn = document.getElementById("claim-bonus");
     const reels = ["reel1", "reel2", "reel3"].map(id => document.getElementById(id));
-    const symbolsList = ["🍒", "🍋", "🍊", "🍇", "🍉", "⭐", "7️⃣", "💎"];
+    const symbolsList = [
+      { name: "cherry", img: "assets/slots/cherry.svg" },
+      { name: "lemon", img: "assets/slots/lemon.svg" },
+      { name: "orange", img: "assets/slots/orange.svg" },
+      { name: "grape", img: "assets/slots/grape.svg" },
+      { name: "watermelon", img: "assets/slots/watermelon.svg" },
+      { name: "star", img: "assets/slots/star.svg" },
+      { name: "seven", img: "assets/slots/seven.svg" },
+      { name: "diamond", img: "assets/slots/diamond.svg" }
+    ];
     const symbolWeights = {
-      "🍒": 30,  // Частые, маленькие выигрыши
-      "🍋": 25,
-      "🍊": 20,
-      "🍇": 15,
-      "🍉": 10,
-      "⭐": 8,   // Средние выигрыши
-      "7️⃣": 3,   // Редкие, большие выигрыши
-      "💎": 2    // Самые редкие, максимальные выигрыши
+      "cherry": 30,
+      "lemon": 25,
+      "orange": 20,
+      "grape": 15,
+      "watermelon": 10,
+      "star": 8,
+      "seven": 3,
+      "diamond": 2
     };
     const sound = document.getElementById("spin-sound");
     const winSound = document.getElementById("win-sound");
@@ -1468,7 +1520,8 @@
         }, 300);
       }, 0);
       
-      playWinSound();
+      winSound.currentTime = 0;
+      winSound.play();
       alert(`${isVip ? '👑 ' : ''}Ты выиграл ${winAmount} монет!🎉`);
     }
 
@@ -1738,7 +1791,8 @@
         autoSpinsLeft--;
       }
       balance -= bet;
-      playSpinSound();
+      sound.currentTime = 0;
+      sound.play();
 
       // --- Новая механика выигрышей ---
       let winType = null;
@@ -1768,7 +1822,8 @@
         for (let i = 0; i < 10; i++) {
           const s = document.createElement('div');
           s.className = 'symbol';
-          s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
+          const symbol = symbolsList[Math.floor(Math.random() * symbolsList.length)];
+          s.innerHTML = `<img src="${symbol.img}" alt="${symbol.name}" class="slot-symbol-img">`;
           symbolsDiv.appendChild(s);
         }
         symbolsDiv.style.animation = `spinReelMulti 1.2s cubic-bezier(0.33,1,0.68,1) ${idx * 0.3}s forwards`;
@@ -1782,15 +1837,21 @@
           for (let i = 0; i < 3; i++) {
             const s = document.createElement('div');
             s.className = 'symbol';
+            let symbol;
             if (winType === 'big') {
-              s.textContent = '💎';
+              symbol = symbolsList.find(sym => sym.name === 'diamond');
+              s.classList.add('win');
             } else if (winType === 'medium') {
-              s.textContent = '⭐';
+              symbol = symbolsList.find(sym => sym.name === 'star');
+              s.classList.add('win');
             } else if (winType === 'small') {
-              s.textContent = '🍒';
+              symbol = symbolsList.find(sym => sym.name === 'cherry');
+              s.classList.add('win');
             } else {
-              s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
+              symbol = symbolsList[Math.floor(Math.random() * symbolsList.length)];
+              s.classList.add('lose');
             }
+            s.innerHTML = `<img src="${symbol.img}" alt="${symbol.name}" class="slot-symbol-img">`;
             symbolsDiv.appendChild(s);
           }
           symbolsDiv.style.animation = '';
@@ -1855,7 +1916,8 @@
         lastBonusDate: now
       };
       await setDoc(ref, data, { merge: true });
-      playCoinSound();
+      coinSound.currentTime = 0;
+      coinSound.play();
       alert('Вы получили ежедневный бонус: 1000 монет');
       updateUI();
     });
@@ -2065,115 +2127,6 @@
         document.getElementById('page-title').classList.remove('shine');
       }, 2500);
     });
-
-    // --- Web Audio API: синтезированные звуки ---
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playSpinSound() {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'triangle';
-      o.frequency.value = 420;
-      g.gain.value = 0.12;
-      o.connect(g).connect(audioCtx.destination);
-      o.start();
-      o.frequency.linearRampToValueAtTime(220, audioCtx.currentTime + 0.18);
-      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
-      o.stop(audioCtx.currentTime + 0.2);
-    }
-    function playWinSound() {
-      const now = audioCtx.currentTime;
-      [0, 0.08, 0.16].forEach((offset, i) => {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = 'sine';
-        o.frequency.value = 660 + i * 120;
-        g.gain.value = 0.18;
-        o.connect(g).connect(audioCtx.destination);
-        o.start(now + offset);
-        o.frequency.linearRampToValueAtTime(880 + i * 120, now + offset + 0.12);
-        g.gain.linearRampToValueAtTime(0, now + offset + 0.13);
-        o.stop(now + offset + 0.13);
-      });
-    }
-    function playCoinSound() {
-      const now = audioCtx.currentTime;
-      [0, 0.04, 0.08].forEach((offset, i) => {
-        const o = audioCtx.createOscillator();
-        const g = audioCtx.createGain();
-        o.type = 'square';
-        o.frequency.value = 1040 - i * 120;
-        g.gain.value = 0.13;
-        o.connect(g).connect(audioCtx.destination);
-        o.start(now + offset);
-        o.frequency.linearRampToValueAtTime(800 - i * 120, now + offset + 0.09);
-        g.gain.linearRampToValueAtTime(0, now + offset + 0.1);
-        o.stop(now + offset + 0.1);
-      });
-    }
-
-    // --- Синтезированная фоновая музыка (лаунж-луп) ---
-    let musicEnabled = false;
-    let musicInterval = null;
-    let musicNotes = [
-      {freq: 261.63, dur: 0.32}, // C4
-      {freq: 329.63, dur: 0.32}, // E4
-      {freq: 392.00, dur: 0.32}, // G4
-      {freq: 349.23, dur: 0.32}, // F4
-      {freq: 392.00, dur: 0.32}, // G4
-      {freq: 329.63, dur: 0.32}, // E4
-      {freq: 261.63, dur: 0.32}, // C4
-      {freq: 392.00, dur: 0.32}, // G4
-    ];
-    function playMusicNote(note) {
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'triangle';
-      o.frequency.value = note.freq;
-      g.gain.value = 0.08;
-      o.connect(g).connect(audioCtx.destination);
-      o.start();
-      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + note.dur);
-      o.stop(audioCtx.currentTime + note.dur);
-    }
-    function startMusic() {
-      if (musicInterval) return;
-      let idx = 0;
-      musicInterval = setInterval(() => {
-        if (!musicEnabled) return;
-        playMusicNote(musicNotes[idx]);
-        idx = (idx + 1) % musicNotes.length;
-      }, 320);
-    }
-    function stopMusic() {
-      if (musicInterval) {
-        clearInterval(musicInterval);
-        musicInterval = null;
-      }
-    }
-    const musicToggle = document.getElementById('music-toggle');
-    const musicIcon = document.getElementById('music-icon');
-    function updateMusicIcon() {
-      musicIcon.textContent = musicEnabled ? '🔇' : '🎵';
-    }
-    musicToggle.addEventListener('click', () => {
-      musicEnabled = !musicEnabled;
-      updateMusicIcon();
-      if (musicEnabled) {
-        audioCtx.resume();
-        startMusic();
-      } else {
-        stopMusic();
-      }
-    });
-    // Включаем музыку после первого клика пользователя (если включена)
-    document.addEventListener('click', () => {
-      if (musicEnabled) {
-        audioCtx.resume();
-        startMusic();
-      }
-    }, { once: true });
-    updateMusicIcon();
   </script>
 </body>
 </html>
