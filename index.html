@@ -1749,7 +1749,8 @@
       return false;
     }
 
-    spinBtn.addEventListener('click', async()=>{
+    // --- Вынесенная функция для спина ---
+    async function doSpin() {
       // Блокируем кнопки на время спина
       spinBtn.disabled = true;
       autoSpinBtn.disabled = true;
@@ -1870,15 +1871,19 @@
         }
         await saveBalance(null, winAmount > 0, winAmount);
         if (autoSpinsLeft > 0) {
-          setTimeout(() => spinBtn.click(), 1000);
+          setTimeout(() => doSpin(), 1000);
         } else {
           // Разблокируем кнопки только если автоспинов больше нет
           spinBtn.disabled = false;
           autoSpinBtn.disabled = false;
         }
       }, 1200 + reels.length * 350);
-    });
+    }
 
+    // Обработчик кнопки Крутить
+    spinBtn.addEventListener('click', doSpin);
+
+    // Обработчик кнопки Авто-спин
     autoSpinBtn.addEventListener('click', () => {
       const bet = +betSelect.value;
       if (balance < bet * 3) {
@@ -1886,7 +1891,7 @@
         return;
       }
       autoSpinsLeft = 3;
-      spinBtn.click();
+      doSpin();
     });
 
     const BONUS_INTERVAL = 24 * 60 * 60 * 1000; // 24 часа в миллисекундах
@@ -2135,5 +2140,4 @@
     });
   </script>
 </body>
-</html>
 </html>
