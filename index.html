@@ -1119,13 +1119,8 @@
     </div>
   </div>
 
-  <audio id="spin-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b16cfba0d.mp3?filename=slot-machine-1-6413.mp3"></audio>
-  <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
-  <audio id="coin-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-coins-handling-1939.mp3"></audio>
-  <audio id="bg-music" src="https://cdn.pixabay.com/audio/2023/03/27/audio_12c6b6e6e6.mp3" loop></audio>
   <button id="music-toggle" style="position:fixed;top:20px;left:20px;padding:10px 16px;background:linear-gradient(120deg,#24143a 60%,#3a2560 100%);color:#ffe066;border:2px solid #ffe066;border-radius:50px;font-weight:bold;cursor:pointer;box-shadow:0 3px 10px #2D1B4A;z-index:1001;transition:transform 0.2s,box-shadow 0.2s;font-size:1.3em;display:flex;align-items:center;justify-content:center;gap:8px;">
     <span id="music-icon" aria-label="Музыка">🎵</span>
-    <span>Музыка</span>
   </button>
 
   <script type="module">
@@ -2074,36 +2069,114 @@
       }, 2500);
     });
 
-    const bgMusic = document.getElementById('bg-music');
+    // --- Web Audio API: синтезированные звуки ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSpinSound() {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = 420;
+      g.gain.value = 0.12;
+      o.connect(g).connect(audioCtx.destination);
+      o.start();
+      o.frequency.linearRampToValueAtTime(220, audioCtx.currentTime + 0.18);
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+      o.stop(audioCtx.currentTime + 0.2);
+    }
+    function playWinSound() {
+      const now = audioCtx.currentTime;
+      [0, 0.08, 0.16].forEach((offset, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sine';
+        o.frequency.value = 660 + i * 120;
+        g.gain.value = 0.18;
+        o.connect(g).connect(audioCtx.destination);
+        o.start(now + offset);
+        o.frequency.linearRampToValueAtTime(880 + i * 120, now + offset + 0.12);
+        g.gain.linearRampToValueAtTime(0, now + offset + 0.13);
+        o.stop(now + offset + 0.13);
+      });
+    }
+    function playCoinSound() {
+      const now = audioCtx.currentTime;
+      [0, 0.04, 0.08].forEach((offset, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'square';
+        o.frequency.value = 1040 - i * 120;
+        g.gain.value = 0.13;
+        o.connect(g).connect(audioCtx.destination);
+        o.start(now + offset);
+        o.frequency.linearRampToValueAtTime(800 - i * 120, now + offset + 0.09);
+        g.gain.linearRampToValueAtTime(0, now + offset + 0.1);
+        o.stop(now + offset + 0.1);
+      });
+    }
+
+    // --- Синтезированная фоновая музыка (лаунж-луп) ---
+    let musicEnabled = false;
+    let musicInterval = null;
+    let musicNotes = [
+      {freq: 261.63, dur: 0.32}, // C4
+      {freq: 329.63, dur: 0.32}, // E4
+      {freq: 392.00, dur: 0.32}, // G4
+      {freq: 349.23, dur: 0.32}, // F4
+      {freq: 392.00, dur: 0.32}, // G4
+      {freq: 329.63, dur: 0.32}, // E4
+      {freq: 261.63, dur: 0.32}, // C4
+      {freq: 392.00, dur: 0.32}, // G4
+    ];
+    function playMusicNote(note) {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'triangle';
+      o.frequency.value = note.freq;
+      g.gain.value = 0.08;
+      o.connect(g).connect(audioCtx.destination);
+      o.start();
+      g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + note.dur);
+      o.stop(audioCtx.currentTime + note.dur);
+    }
+    function startMusic() {
+      if (musicInterval) return;
+      let idx = 0;
+      musicInterval = setInterval(() => {
+        if (!musicEnabled) return;
+        playMusicNote(musicNotes[idx]);
+        idx = (idx + 1) % musicNotes.length;
+      }, 320);
+    }
+    function stopMusic() {
+      if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null;
+      }
+    }
     const musicToggle = document.getElementById('music-toggle');
     const musicIcon = document.getElementById('music-icon');
-    let musicEnabled = false;
-
     function updateMusicIcon() {
-      musicIcon.textContent = bgMusic.paused ? '🎵' : '🔇';
+      musicIcon.textContent = musicEnabled ? '🔇' : '🎵';
     }
-
-    function enableMusic() {
-      if (!musicEnabled) {
-        bgMusic.volume = 0.5;
-        bgMusic.play().catch(()=>{});
-        musicEnabled = true;
-        updateMusicIcon();
-      }
-      document.removeEventListener('click', enableMusic);
-    }
-    document.addEventListener('click', enableMusic);
-
     musicToggle.addEventListener('click', () => {
-      if (bgMusic.paused) {
-        bgMusic.play();
-      } else {
-        bgMusic.pause();
-      }
+      musicEnabled = !musicEnabled;
       updateMusicIcon();
+      if (musicEnabled) {
+        audioCtx.resume();
+        startMusic();
+      } else {
+        stopMusic();
+      }
     });
-    bgMusic.addEventListener('play', updateMusicIcon);
-    bgMusic.addEventListener('pause', updateMusicIcon);
+    // Включаем музыку после первого клика пользователя (если включена)
+    document.addEventListener('click', () => {
+      if (musicEnabled) {
+        audioCtx.resume();
+        startMusic();
+      }
+    }, { once: true });
+    updateMusicIcon();
   </script>
 </body>
 </html>
