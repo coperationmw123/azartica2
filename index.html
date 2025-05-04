@@ -1122,6 +1122,11 @@
   <audio id="spin-sound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_5b16cfba0d.mp3?filename=slot-machine-1-6413.mp3"></audio>
   <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
   <audio id="coin-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-coins-handling-1939.mp3"></audio>
+  <audio id="bg-music" src="https://cdn.pixabay.com/audio/2023/03/27/audio_12c6b6e6e6.mp3" loop></audio>
+  <button id="music-toggle" style="position:fixed;top:20px;left:20px;padding:10px 16px;background:linear-gradient(120deg,#24143a 60%,#3a2560 100%);color:#ffe066;border:2px solid #ffe066;border-radius:50px;font-weight:bold;cursor:pointer;box-shadow:0 3px 10px #2D1B4A;z-index:1001;transition:transform 0.2s,box-shadow 0.2s;font-size:1.3em;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <span id="music-icon" aria-label="Музыка">🎵</span>
+    <span>Музыка</span>
+  </button>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
@@ -2068,6 +2073,37 @@
         document.getElementById('page-title').classList.remove('shine');
       }, 2500);
     });
+
+    const bgMusic = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+    const musicIcon = document.getElementById('music-icon');
+    let musicEnabled = false;
+
+    function updateMusicIcon() {
+      musicIcon.textContent = bgMusic.paused ? '🎵' : '🔇';
+    }
+
+    function enableMusic() {
+      if (!musicEnabled) {
+        bgMusic.volume = 0.5;
+        bgMusic.play().catch(()=>{});
+        musicEnabled = true;
+        updateMusicIcon();
+      }
+      document.removeEventListener('click', enableMusic);
+    }
+    document.addEventListener('click', enableMusic);
+
+    musicToggle.addEventListener('click', () => {
+      if (bgMusic.paused) {
+        bgMusic.play();
+      } else {
+        bgMusic.pause();
+      }
+      updateMusicIcon();
+    });
+    bgMusic.addEventListener('play', updateMusicIcon);
+    bgMusic.addEventListener('pause', updateMusicIcon);
   </script>
 </body>
 </html>
