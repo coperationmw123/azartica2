@@ -1468,8 +1468,7 @@
         }, 300);
       }, 0);
       
-      winSound.currentTime = 0;
-      winSound.play();
+      playWinSound();
       alert(`${isVip ? '👑 ' : ''}Ты выиграл ${winAmount} монет!🎉`);
     }
 
@@ -1739,8 +1738,7 @@
         autoSpinsLeft--;
       }
       balance -= bet;
-      sound.currentTime = 0;
-      sound.play();
+      playSpinSound();
 
       // --- Новая механика выигрышей ---
       let winType = null;
@@ -1857,8 +1855,7 @@
         lastBonusDate: now
       };
       await setDoc(ref, data, { merge: true });
-      coinSound.currentTime = 0;
-      coinSound.play();
+      playCoinSound();
       alert('Вы получили ежедневный бонус: 1000 монет');
       updateUI();
     });
