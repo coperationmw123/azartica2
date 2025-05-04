@@ -894,49 +894,6 @@
       }
     `;
     document.head.appendChild(style);
-
-    /* --- SVG-символы для слота --- */
-    .symbol {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      height: 90px;
-      background: linear-gradient(120deg, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.12) 100%);
-      border-radius: 8px;
-      transition: box-shadow 0.3s, background 0.3s;
-    }
-    .slot-symbol-img {
-      width: 64px;
-      height: 64px;
-      display: block;
-      filter: drop-shadow(0 0 12px #ffe06688) drop-shadow(0 2px 8px #2D1B4A44);
-      transition: transform 0.25s cubic-bezier(.5,1.5,.5,1), filter 0.25s;
-      will-change: transform, filter;
-    }
-    .symbol.win .slot-symbol-img {
-      animation: win-bounce 0.7s cubic-bezier(.5,1.5,.5,1);
-      filter: drop-shadow(0 0 32px #ffd700cc) drop-shadow(0 2px 16px #ffb300cc);
-      z-index: 2;
-    }
-    @keyframes win-bounce {
-      0% { transform: scale(1); }
-      30% { transform: scale(1.25) rotate(-8deg); }
-      60% { transform: scale(0.95) rotate(6deg); }
-      100% { transform: scale(1) rotate(0); }
-    }
-    .symbol.lose .slot-symbol-img {
-      opacity: 0.6;
-      filter: grayscale(0.7) blur(1px);
-    }
-    .reel {
-      box-shadow: 0 0 32px 0 #ffe06633, 0 5px 18px #2D1B4A, 0 1.5px 0 #ffe066 inset;
-      border: 3px solid #ffe066;
-      background: radial-gradient(circle at 60% 40%, #ffe06622 0%, #2D1B4A 100%);
-      position: relative;
-      overflow: hidden;
-    }
   </style>
 </head>
 <body>
@@ -1188,25 +1145,16 @@
     const modal = document.getElementById("daily-bonus-modal");
     const claimBtn = document.getElementById("claim-bonus");
     const reels = ["reel1", "reel2", "reel3"].map(id => document.getElementById(id));
-    const symbolsList = [
-      { name: "cherry", img: "assets/slots/cherry.svg" },
-      { name: "lemon", img: "assets/slots/lemon.svg" },
-      { name: "orange", img: "assets/slots/orange.svg" },
-      { name: "grape", img: "assets/slots/grape.svg" },
-      { name: "watermelon", img: "assets/slots/watermelon.svg" },
-      { name: "star", img: "assets/slots/star.svg" },
-      { name: "seven", img: "assets/slots/seven.svg" },
-      { name: "diamond", img: "assets/slots/diamond.svg" }
-    ];
+    const symbolsList = ["🍒", "🍋", "🍊", "🍇", "🍉", "⭐", "7️⃣", "💎"];
     const symbolWeights = {
-      "cherry": 30,
-      "lemon": 25,
-      "orange": 20,
-      "grape": 15,
-      "watermelon": 10,
-      "star": 8,
-      "seven": 3,
-      "diamond": 2
+      "🍒": 30,  // Частые, маленькие выигрыши
+      "🍋": 25,
+      "🍊": 20,
+      "🍇": 15,
+      "🍉": 10,
+      "⭐": 8,   // Средние выигрыши
+      "7️⃣": 3,   // Редкие, большие выигрыши
+      "💎": 2    // Самые редкие, максимальные выигрыши
     };
     const sound = document.getElementById("spin-sound");
     const winSound = document.getElementById("win-sound");
@@ -1822,8 +1770,7 @@
         for (let i = 0; i < 10; i++) {
           const s = document.createElement('div');
           s.className = 'symbol';
-          const symbol = symbolsList[Math.floor(Math.random() * symbolsList.length)];
-          s.innerHTML = `<img src="${symbol.img}" alt="${symbol.name}" class="slot-symbol-img">`;
+          s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
           symbolsDiv.appendChild(s);
         }
         symbolsDiv.style.animation = `spinReelMulti 1.2s cubic-bezier(0.33,1,0.68,1) ${idx * 0.3}s forwards`;
@@ -1837,21 +1784,15 @@
           for (let i = 0; i < 3; i++) {
             const s = document.createElement('div');
             s.className = 'symbol';
-            let symbol;
             if (winType === 'big') {
-              symbol = symbolsList.find(sym => sym.name === 'diamond');
-              s.classList.add('win');
+              s.textContent = '💎';
             } else if (winType === 'medium') {
-              symbol = symbolsList.find(sym => sym.name === 'star');
-              s.classList.add('win');
+              s.textContent = '⭐';
             } else if (winType === 'small') {
-              symbol = symbolsList.find(sym => sym.name === 'cherry');
-              s.classList.add('win');
+              s.textContent = '🍒';
             } else {
-              symbol = symbolsList[Math.floor(Math.random() * symbolsList.length)];
-              s.classList.add('lose');
+              s.textContent = symbolsList[Math.floor(Math.random() * symbolsList.length)];
             }
-            s.innerHTML = `<img src="${symbol.img}" alt="${symbol.name}" class="slot-symbol-img">`;
             symbolsDiv.appendChild(s);
           }
           symbolsDiv.style.animation = '';
