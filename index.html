@@ -1561,7 +1561,18 @@
       }
     }
 
+    // Проверка на Telegram WebApp
+    function isTelegramWebApp() {
+      return !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user);
+    }
+
     async function loadUserData() {
+      // Проверка: если не Telegram WebApp — не грузим/не пишем в Firebase
+      if (!isTelegramWebApp()) {
+        document.getElementById('telegram-warning').style.display = 'block';
+        // Можно отключить управление игрой, если нужно
+        return;
+      }
       // Get user ID and name first
       if (!userId) {
         const userData = await getTelegramUserId();
