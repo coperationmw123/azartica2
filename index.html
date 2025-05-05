@@ -911,6 +911,18 @@
       z-index: 2;
       position: relative;
     }
+
+    /* Подсветка вкладки бонуса, когда бонус доступен */
+    #tab-bonus.bonus-glow {
+      box-shadow: 0 0 18px 4px #ffe066cc, 0 0 8px 2px #ffb30099;
+      background: linear-gradient(120deg, #fffbe622 60%, #ffe06622 100%);
+      border-radius: 12px 12px 0 0;
+      animation: bonusGlowPulse 1.2s infinite alternate;
+    }
+    @keyframes bonusGlowPulse {
+      0% { box-shadow: 0 0 12px 2px #ffe06699, 0 0 4px 1px #ffb30055; }
+      100% { box-shadow: 0 0 24px 8px #ffe066cc, 0 0 12px 4px #ffb300cc; }
+    }
   </style>
 </head>
 <body>
@@ -2181,9 +2193,16 @@
     const bonusTimerEl = document.getElementById('bonus-timer');
     const claimBonusBtn = document.getElementById('claim-bonus');
     const bonusProgressBar = document.getElementById('bonus-progress-bar');
+    const tabBonus = document.getElementById('tab-bonus'); // добавлено
 
     function getBonusAmount(streak) {
       return 1000 + (streak - 1) * 50;
+    }
+
+    function setBonusTabGlow(enabled) {
+      if (!tabBonus) return;
+      if (enabled) tabBonus.classList.add('bonus-glow');
+      else tabBonus.classList.remove('bonus-glow');
     }
 
     function renderBonusProgressBar(streak) {
@@ -2222,11 +2241,13 @@
           claimBonusBtn.style.display = '';
           bonusTimerInfo.style.display = 'none';
           bonusAmountInfo.style.display = '';
+          setBonusTabGlow(true); // включаем подсветку
           return;
         }
         claimBonusBtn.style.display = 'none';
         bonusTimerInfo.style.display = '';
         bonusAmountInfo.style.display = 'none';
+        setBonusTabGlow(false); // выключаем подсветку
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
@@ -2253,10 +2274,12 @@
         claimBonusBtn.style.display = '';
         bonusTimerInfo.style.display = 'none';
         bonusAmountInfo.style.display = '';
+        setBonusTabGlow(true); // включаем подсветку
       } else {
         claimBonusBtn.style.display = 'none';
         bonusTimerInfo.style.display = '';
         bonusAmountInfo.style.display = 'none';
+        setBonusTabGlow(false); // выключаем подсветку
         startBonusTimer();
       }
     }
@@ -2265,6 +2288,11 @@
     document.getElementById('tab-bonus').addEventListener('click', loadBonusData);
     // Также при старте
     loadBonusData();
+
+    // После получения бонуса убираем подсветку
+    claimBonusBtn.addEventListener('click', function() {
+      setBonusTabGlow(false);
+    });
   </script>
 </body>
 </html>
