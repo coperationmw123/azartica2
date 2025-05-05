@@ -1872,21 +1872,30 @@
       sound.currentTime = 0;
       sound.play();
 
-      // --- Новая механика выигрышей ---
+      // --- Казиношная механика выигрышей ---
       let winType = null;
       let winAmount = 0;
+      let winSymbol = null;
       const rand = Math.random() * 100;
-      // Big Win (0.3%)
-      if (rand < 0.3) {
-        winType = 'big';
-        winAmount = bet * 20;
-      } else if (rand < 7.3) { // Средний выигрыш (7%)
-        winType = 'medium';
-        // 50% шанс ×4, 50% шанс ×10
-        winAmount = bet * (Math.random() < 0.5 ? 4 : 10);
-      } else if (rand < 19.3) { // Мелкий выигрыш (12%)
-        winType = 'small';
-        winAmount = bet * 2;
+      if (rand < 30) { // 30% шанс на выигрыш
+        const winRand = Math.random() * 30;
+        if (winRand < 0.09) { // 0.3% из 30% (0.09/30)
+          winType = 'diamond'; winSymbol = '💎'; winAmount = bet * 20;
+        } else if (winRand < 0.39) { // 1% из 30%
+          winType = 'seven'; winSymbol = '7️⃣'; winAmount = bet * 8;
+        } else if (winRand < 0.99) { // 2% из 30%
+          winType = 'star'; winSymbol = '⭐'; winAmount = bet * 5;
+        } else if (winRand < 1.89) { // 3% из 30%
+          winType = 'watermelon'; winSymbol = '🍉'; winAmount = bet * 3;
+        } else if (winRand < 3.09) { // 4% из 30%
+          winType = 'grape'; winSymbol = '🍇'; winAmount = bet * 2;
+        } else if (winRand < 4.59) { // 5% из 30%
+          winType = 'orange'; winSymbol = '🍊'; winAmount = bet * 2;
+        } else if (winRand < 6.69) { // 7% из 30%
+          winType = 'lemon'; winSymbol = '🍋'; winAmount = bet * 2;
+        } else { // 7.7% из 30%
+          winType = 'cherry'; winSymbol = '🍒'; winAmount = bet * 2;
+        }
       } else {
         winType = 'lose';
         winAmount = 0;
@@ -1947,12 +1956,12 @@
       // Определяем итоговые символы для каждого барабана
       let finalSymbols = [];
       let winSymbols = [false, false, false];
-      if (winType === 'big') { finalSymbols = ['💎','💎','💎']; winSymbols = [true, true, true]; }
-      else if (winType === 'medium') { finalSymbols = ['⭐','⭐','⭐']; winSymbols = [true, true, true]; }
-      else if (winType === 'small') { finalSymbols = ['🍒','🍒','🍒']; winSymbols = [true, true, true]; }
-      else {
+      if (winType !== 'lose') {
+        finalSymbols = [winSymbol, winSymbol, winSymbol];
+        winSymbols = [true, true, true];
+      } else {
         finalSymbols = Array.from({length: 3}, () => symbolsList[Math.floor(Math.random() * symbolsList.length)]);
-        // Если все три совпали — тоже подсветить
+        // Если все три совпали — тоже подсветить, но выигрыш не начислять
         if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
           winSymbols = [true, true, true];
         }
