@@ -956,8 +956,8 @@
       <button id="auto-spin">🔄 Авто-спин (3x)</button>
     </div>
     <div id="stats">
-      <div>🏆 Побед: <span id="wins-count">0</span></div>
-      <div>💰 Рекорд: <span id="max-win">0</span> монет</div>
+      <div>🏆 Твои победы сегодня: <span id="wins-today">0</span></div>
+      <div>💰 Твой рекорд за сегодня: <span id="max-win-today">0</span> монет</div>
     </div>
   </div>
 
@@ -1776,8 +1776,12 @@
 
     function updateUI() {
       animateBalance(balance);
-      winsCountEl.textContent = winsCount;
-      maxWinEl.textContent = maxWin;
+      // winsCountEl.textContent = winsCount;
+      // maxWinEl.textContent = maxWin;
+      const winsTodayEl = document.getElementById('wins-today');
+      const maxWinTodayEl = document.getElementById('max-win-today');
+      if (winsTodayEl) winsTodayEl.textContent = typeof winsToday !== 'undefined' ? winsToday : 0;
+      if (maxWinTodayEl) maxWinTodayEl.textContent = typeof maxWinToday !== 'undefined' ? maxWinToday : 0;
       if (document.getElementById('user-id-display')) {
         document.getElementById('user-id-display').textContent = userId;
       }
