@@ -1074,7 +1074,21 @@
       </span>
       <div class="tab-label">Лидеры</div>
     </div>
-    <div class="tab-item" id="tab-referral">
+    <div class="tab-item" id="tab-slots" style="order:2;">
+      <span class="tab-icon" aria-label="Слоты">
+        <!-- Контурный слот-аппарат в едином стиле -->
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="10" width="18" height="12" rx="4"/>
+          <rect x="11" y="14" width="2.8" height="5" rx="1.1"/>
+          <rect x="18.2" y="14" width="2.8" height="5" rx="1.1"/>
+          <circle cx="16" cy="20.5" r="1.3"/>
+          <path d="M16 10V7"/>
+          <circle cx="16" cy="7" r="1.3"/>
+        </svg>
+      </span>
+      <div class="tab-label">Слоты</div>
+    </div>
+    <div class="tab-item" id="tab-referral" style="order:3;">
       <span class="tab-icon" aria-label="Рефералы">
         <!-- Контурные силуэты двух человек -->
         <svg viewBox="0 0 32 32" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1488,13 +1502,19 @@
       document.getElementById('leaders-modal').style.display = 'none';
       document.getElementById('referral-modal').style.display = 'none';
       document.getElementById('topup-modal').style.display = 'none';
-      document.getElementById('daily-bonus-modal').style.display = 'none'; // добавлено
+      document.getElementById('daily-bonus-modal').style.display = 'none';
+      document.getElementById('slots-modal').style.display = 'none';
     }
     document.getElementById('tab-leaders').addEventListener('click', () => {
       closeAllModals();
       document.getElementById('leaders-modal').style.display = 'flex';
       updateLeaderboard(currentLeaderboardPeriod);
       setActiveTab('tab-leaders');
+    });
+    document.getElementById('tab-slots').addEventListener('click', () => {
+      closeAllModals();
+      document.getElementById('slots-modal').style.display = 'flex';
+      setActiveTab('tab-slots');
     });
     document.getElementById('tab-referral').addEventListener('click', () => {
       closeAllModals();
@@ -1535,6 +1555,10 @@
     }
     window.closeTopupModal = function() {
       document.getElementById('topup-modal').style.display = 'none';
+      setActiveTab(null);
+    }
+    window.closeSlotsModal = function() {
+      document.getElementById('slots-modal').style.display = 'none';
       setActiveTab(null);
     }
     // --- Кнопка поддержки ---
@@ -2437,5 +2461,15 @@
       setBonusTabGlow(false);
     });
   </script>
+
+  <!-- Модальное окно Слоты -->
+  <div id="slots-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeSlotsModal()">×</button>
+      <h3 style="color: gold; font-size: 1.5em; margin-bottom: 20px;">🎰 Слоты</h3>
+      <div style="font-size:1.15em; color:#ffe066; text-align:center; margin-bottom:10px;">Сейчас доступен один слот.</div>
+      <div style="font-size:1.05em; color:#fffbe6a0; text-align:center;">Другие слоты в разработке и скоро будут доступны!</div>
+    </div>
+  </div>
 </body>
 </html>
