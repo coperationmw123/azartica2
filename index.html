@@ -1251,7 +1251,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, addDoc, where } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB1tndSNBFy18H_uaAY1D-PSoC84QvBDgc",
@@ -2463,6 +2463,21 @@
       const sessionDuration = sessionEnd - sessionStart;
       logStatEvent('session_end', { sessionDuration });
     });
+
+    async function logStatEvent(type, extra = {}) {
+      try {
+        if (!userId) return;
+        await addDoc(statsEventsRef, {
+          userId,
+          type,
+          timestamp: Date.now(),
+          ...extra
+        });
+      } catch (e) {
+        // Не мешаем работе игры
+        // console.error('Stat event error:', e);
+      }
+    }
   </script>
 
   <!-- Модальное окно Слоты -->
