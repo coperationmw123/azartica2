@@ -976,14 +976,16 @@
     }
     #balance-plus {
       display: inline-block;
-      font-size: 1.15em;
-      color: #4CAF50;
-      font-weight: bold;
+      font-size: 1.22em;
+      color: #ffe066;
+      font-weight: 700;
       opacity: 0;
-      transform: translateY(16px);
-      transition: opacity 0.5s, transform 0.5s;
+      transform: translateY(-18px);
+      transition: opacity 1s, transform 1s cubic-bezier(.4,0,.2,1);
       pointer-events: none;
-      text-shadow: 0 1px 8px #fffbe6cc;
+      text-shadow: 0 0 12px #ffb300, 0 0 4px #2D1B4A;
+      filter: drop-shadow(0 0 8px #ffe06688);
+      letter-spacing: 0.01em;
     }
     #balance-plus.show {
       opacity: 1;
@@ -1849,7 +1851,7 @@
         if (plusEl) {
           plusEl.textContent = `+${plus}`;
           plusEl.classList.add('show');
-          setTimeout(() => plusEl.classList.remove('show'), 700);
+          setTimeout(() => plusEl.classList.remove('show'), 1000);
         }
       }
       function step(now) {
