@@ -965,21 +965,29 @@
     }
 
     /* Анимация +N при увеличении баланса */
+    #balance-plus-container {
+      position: relative;
+      height: 28px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      pointer-events: none;
+    }
     #balance-plus {
       display: inline-block;
-      margin-left: 12px;
-      font-size: 1.1em;
+      font-size: 1.15em;
       color: #4CAF50;
       font-weight: bold;
       opacity: 0;
-      transform: translateY(0px);
+      transform: translateY(16px);
       transition: opacity 0.5s, transform 0.5s;
       pointer-events: none;
       text-shadow: 0 1px 8px #fffbe6cc;
     }
     #balance-plus.show {
       opacity: 1;
-      transform: translateY(-16px);
+      transform: translateY(0px);
     }
   </style>
 </head>
@@ -996,6 +1004,9 @@
       <div class="reel" id="reel3"><div class="symbols"></div></div>
     </div>
     <div id="balance">Баланс: 100 монет</div>
+    <div id="balance-plus-container" style="position:relative; height:28px; width:100%; display:flex; justify-content:center; align-items:flex-start; pointer-events:none;">
+      <span id="balance-plus"></span>
+    </div>
     <div id="no-coins-msg" style="display:none; margin-bottom: 15px; background: rgba(255,255,0,0.12); color: #ffd700; border-radius: 10px; padding: 10px 15px; font-size: 1.08em; text-align: center; max-width: 480px;">
       Монеты на нуле — игра не заканчивается! 🎰🔥<br>
       Пополняй запасы в разделе «Пополнить», зови друзей за щедрые бонусы или возвращайся завтра за ежедневным подарком. Удача уже рядом! 🍀💰
@@ -1718,6 +1729,9 @@
         usedReferral = snap.data().usedReferral || false;
         myReferral = snap.data().myReferral || null;
         window._myAvatarUrl = snap.data().avatarUrl || window._myAvatarUrl || null;
+        // Добавлено: подтягиваем winsToday и maxWinToday из базы
+        window.winsToday = typeof snap.data().winsToday !== 'undefined' ? snap.data().winsToday : 0;
+        window.maxWinToday = typeof snap.data().maxWinToday !== 'undefined' ? snap.data().maxWinToday : 0;
       } else {
         balance = 100;
         winsCount = 0;
@@ -1832,14 +1846,11 @@
       if (end > start) {
         let plus = end - start;
         let plusEl = document.getElementById('balance-plus');
-        if (!plusEl) {
-          plusEl = document.createElement('span');
-          plusEl.id = 'balance-plus';
-          balanceEl.parentNode.insertBefore(plusEl, balanceEl.nextSibling);
+        if (plusEl) {
+          plusEl.textContent = `+${plus}`;
+          plusEl.classList.add('show');
+          setTimeout(() => plusEl.classList.remove('show'), 700);
         }
-        plusEl.textContent = `+${plus}`;
-        plusEl.classList.add('show');
-        setTimeout(() => plusEl.classList.remove('show'), 700);
       }
       function step(now) {
         const progress = Math.min((now - startTime) / duration, 1);
