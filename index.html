@@ -1107,20 +1107,27 @@
       <button class="modal-close" onclick="closeLeadersModal()">×</button>
       <h3 style="color: gold; font-size: 1.5em; margin-bottom: 20px;">🏆 Таблица лидеров</h3>
       <div class="leaderboard-period-tabs">
-        <button class="leaderboard-period-tab active" data-period="day">Выигрыш за сегодня</button>
-        <button class="leaderboard-period-tab" data-period="week">Выигрыш за неделю</button>
-        <button class="leaderboard-period-tab" data-period="all">Выигрыш за всё время</button>
-        <button class="leaderboard-period-tab" data-period="balance">Баланс</button>
+        <button class="leaderboard-period-tab active" data-period="balance">Топ по балансу</button>
+        <button class="leaderboard-period-tab" data-period="referrals">Топ по рефералам</button>
+        <button class="leaderboard-period-tab" data-period="winsToday">Топ по победам</button>
+        <button class="leaderboard-period-tab" data-period="maxWinToday">Топ по выигрышу</button>
       </div>
 
-      <div class="leaderboard">
-        <h4 style="color: #ffd700; margin-bottom: 15px;">🎰 Топ по выигрышам</h4>
-        <div id="winners-leaderboard"></div>
-      </div>
-
-      <div class="leaderboard">
-        <h4 style="color: #ffd700; margin-bottom: 15px;">💰 Топ по балансу</h4>
+      <div class="leaderboard" id="balance-leaderboard-block">
+        <h4 style="color: #ffd700; margin-bottom: 15px;">💰 Топ по балансу (всё время)</h4>
         <div id="balance-leaderboard"></div>
+      </div>
+      <div class="leaderboard" id="referral-leaderboard-block" style="display:none;">
+        <h4 style="color: #ffd700; margin-bottom: 15px;">👫 Топ по рефералам (всё время)</h4>
+        <div id="referral-leaderboard"></div>
+      </div>
+      <div class="leaderboard" id="wins-leaderboard-block" style="display:none;">
+        <h4 style="color: #ffd700; margin-bottom: 15px;">🏆 Топ по победам (сегодня)</h4>
+        <div id="wins-leaderboard"></div>
+      </div>
+      <div class="leaderboard" id="maxwin-leaderboard-block" style="display:none;">
+        <h4 style="color: #ffd700; margin-bottom: 15px;">🎰 Топ по выигрышу (сегодня)</h4>
+        <div id="maxwin-leaderboard"></div>
       </div>
     </div>
   </div>
@@ -1210,7 +1217,10 @@
     // Добавляем новые переменные для лидерборда
     let leaderboardData = {
       winners: [],
-      balance: []
+      balance: [],
+      referrals: [],
+      winsToday: [],
+      maxWinToday: []
     };
 
     // Добавляем переменные для VIP-статуса
@@ -1224,139 +1234,155 @@
     let myReferral = null;
 
     // --- Лидерборд по периодам ---
-    let currentLeaderboardPeriod = 'all';
+    let currentLeaderboardPeriod = 'balance';
     document.querySelectorAll('.leaderboard-period-tab').forEach(tab => {
       tab.addEventListener('click', () => {
         document.querySelectorAll('.leaderboard-period-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         currentLeaderboardPeriod = tab.dataset.period;
+        // Показываем только нужный блок
+        document.getElementById('balance-leaderboard-block').style.display = (currentLeaderboardPeriod === 'balance') ? '' : 'none';
+        document.getElementById('referral-leaderboard-block').style.display = (currentLeaderboardPeriod === 'referrals') ? '' : 'none';
+        document.getElementById('wins-leaderboard-block').style.display = (currentLeaderboardPeriod === 'winsToday') ? '' : 'none';
+        document.getElementById('maxwin-leaderboard-block').style.display = (currentLeaderboardPeriod === 'maxWinToday') ? '' : 'none';
         updateLeaderboard(currentLeaderboardPeriod);
       });
     });
 
-    // Обновлённая функция для загрузки лидеров по периоду
-    async function updateLeaderboard(period = 'all') {
+    // Обновлённая функция для загрузки лидеров по топу
+    async function updateLeaderboard(period = 'balance') {
       const usersRef = collection(db, "users");
-      let winnersField = 'maxWin';
-      let winnersTitle = '';
-      if (period === 'day') { winnersField = 'maxWinToday'; winnersTitle = 'Самый большой выигрыш за сегодня'; }
-      else if (period === 'week') { winnersField = 'maxWinWeek'; winnersTitle = 'Самый большой выигрыш за неделю'; }
-      else if (period === 'all') { winnersField = 'maxWin'; winnersTitle = 'Самый большой выигрыш за всё время'; }
-      else if (period === 'balance') { winnersField = 'balance'; winnersTitle = 'Самый высокий текущий баланс'; }
-
-      let winnersSnap;
+      let snap;
       if (period === 'balance') {
-        winnersSnap = await getDocs(query(usersRef, orderBy('balance', 'desc'), limit(100)));
-        leaderboardData.winners = [];
-        leaderboardData.balance = winnersSnap.docs.slice(0, 10).map(doc => ({
+        snap = await getDocs(query(usersRef, orderBy('balance', 'desc'), limit(100)));
+        leaderboardData.balance = snap.docs.slice(0, 10).map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
-          balance: doc.data().balance || 0,
+          value: doc.data().balance || 0,
           avatarUrl: doc.data().avatarUrl || null
         }));
-        leaderboardData._allDocsBalance = winnersSnap.docs.map(doc => ({
+        leaderboardData._allDocsBalance = snap.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
-          balance: doc.data().balance || 0,
+          value: doc.data().balance || 0,
           avatarUrl: doc.data().avatarUrl || null
         }));
-      } else {
-        winnersSnap = await getDocs(query(usersRef, orderBy(winnersField, 'desc'), limit(100)));
-        leaderboardData.winners = winnersSnap.docs.slice(0, 10).map(doc => ({
+      } else if (period === 'referrals') {
+        snap = await getDocs(query(usersRef, orderBy('referralCount', 'desc'), limit(100)));
+        leaderboardData.referrals = snap.docs.slice(0, 10).map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
-          maxWin: doc.data()[winnersField] || 0,
+          value: doc.data().referralCount || 0,
           avatarUrl: doc.data().avatarUrl || null
         }));
-        leaderboardData.balance = [];
-        leaderboardData._allDocsWinners = winnersSnap.docs.map(doc => ({
+        leaderboardData._allDocsReferrals = snap.docs.map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
-          maxWin: doc.data()[winnersField] || 0,
+          value: doc.data().referralCount || 0,
+          avatarUrl: doc.data().avatarUrl || null
+        }));
+      } else if (period === 'winsToday') {
+        snap = await getDocs(query(usersRef, orderBy('winsToday', 'desc'), limit(100)));
+        leaderboardData.winsToday = snap.docs.slice(0, 10).map(doc => ({
+          id: doc.id,
+          name: doc.data().name || 'Гость',
+          value: doc.data().winsToday || 0,
+          avatarUrl: doc.data().avatarUrl || null
+        }));
+        leaderboardData._allDocsWinsToday = snap.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name || 'Гость',
+          value: doc.data().winsToday || 0,
+          avatarUrl: doc.data().avatarUrl || null
+        }));
+      } else if (period === 'maxWinToday') {
+        snap = await getDocs(query(usersRef, orderBy('maxWinToday', 'desc'), limit(100)));
+        leaderboardData.maxWinToday = snap.docs.slice(0, 10).map(doc => ({
+          id: doc.id,
+          name: doc.data().name || 'Гость',
+          value: doc.data().maxWinToday || 0,
+          avatarUrl: doc.data().avatarUrl || null
+        }));
+        leaderboardData._allDocsMaxWinToday = snap.docs.map(doc => ({
+          id: doc.id,
+          name: doc.data().name || 'Гость',
+          value: doc.data().maxWinToday || 0,
           avatarUrl: doc.data().avatarUrl || null
         }));
       }
-
-      // Обновляем заголовки таблиц
-      const winTitle = document.querySelector('.leaderboard h4');
-      const balTitle = document.querySelectorAll('.leaderboard h4')[1];
-      if (winTitle) winTitle.textContent = winnersTitle;
-      if (balTitle) balTitle.textContent = (period === 'balance') ? 'Топ по балансу' : '';
-
       renderLeaderboard(period);
     }
-    // По умолчанию показываем "всё время"
-    updateLeaderboard('all');
+    // По умолчанию показываем баланс
+    updateLeaderboard('balance');
 
     // Функция для отрисовки лидерборда
-    function renderLeaderboard(period = 'all') {
-      const winnersEl = document.getElementById('winners-leaderboard');
-      const balanceEl = document.getElementById('balance-leaderboard');
-      const myId = userId;
+    function renderLeaderboard(period = 'balance') {
+      const blocks = {
+        balance: document.getElementById('balance-leaderboard'),
+        referrals: document.getElementById('referral-leaderboard'),
+        winsToday: document.getElementById('wins-leaderboard'),
+        maxWinToday: document.getElementById('maxwin-leaderboard')
+      };
+      Object.values(blocks).forEach(el => { if (el) el.innerHTML = ''; });
+      let data = [];
+      let myId = userId;
       let myPlace = null;
       let myValue = null;
       let myAvatar = window._myAvatarUrl || null;
       let myName = userName;
-      // Получаем все данные пользователей для поиска позиции
       let allDocs = [];
       if (period === 'balance') {
-        if (winnersEl) winnersEl.innerHTML = '';
-        if (balanceEl) {
-          balanceEl.innerHTML = leaderboardData.balance
-            .map((player, index) => {
-              const isMe = player.id === myId;
-              return `<div class="leaderboard-item${isMe ? ' me' : ''}">
-                <span class="rank rank-${index + 1}">${index + 1}</span>
-                <img class="leader-avatar" src="${player.avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.name)}" alt="avatar">
-                <span class="player-name">${player.name}${player.isVip ? ' <span class=\"vip-badge\">VIP</span>' : ''}</span>
-                <span class="player-score">${player.balance} 💰</span>
-              </div>`;
-            }).join('');
-        }
-        // Для позиции: нужно получить всех пользователей по балансу
+        data = leaderboardData.balance || [];
         allDocs = leaderboardData._allDocsBalance || [];
-        if (allDocs.length === 0) return;
-        const idx = allDocs.findIndex(u => u.id === myId);
-        if (idx !== -1) {
-          myPlace = idx + 1;
-          myValue = allDocs[idx].balance;
-          myAvatar = allDocs[idx].avatarUrl || myAvatar;
-          myName = allDocs[idx].name || myName;
-        }
-      } else {
-        if (winnersEl) {
-          winnersEl.innerHTML = leaderboardData.winners
-            .map((player, index) => {
-              const isMe = player.id === myId;
-              return `<div class="leaderboard-item${isMe ? ' me' : ''}">
-                <span class="rank rank-${index + 1}">${index + 1}</span>
-                <img class="leader-avatar" src="${player.avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.name)}" alt="avatar">
-                <span class="player-name">${player.name}${player.isVip ? ' <span class=\"vip-badge\">VIP</span>' : ''}</span>
-                <span class="player-score">${player.maxWin} 💎</span>
-              </div>`;
-            }).join('');
-        }
-        if (balanceEl) balanceEl.innerHTML = '';
-        // Для позиции: нужно получить всех пользователей по maxWinXXX
-        allDocs = leaderboardData._allDocsWinners || [];
-        if (allDocs.length === 0) return;
-        const idx = allDocs.findIndex(u => u.id === myId);
-        if (idx !== -1) {
-          myPlace = idx + 1;
-          myValue = allDocs[idx].maxWin;
-          myAvatar = allDocs[idx].avatarUrl || myAvatar;
-          myName = allDocs[idx].name || myName;
-        }
+      } else if (period === 'referrals') {
+        data = leaderboardData.referrals || [];
+        allDocs = leaderboardData._allDocsReferrals || [];
+      } else if (period === 'winsToday') {
+        data = leaderboardData.winsToday || [];
+        allDocs = leaderboardData._allDocsWinsToday || [];
+      } else if (period === 'maxWinToday') {
+        data = leaderboardData.maxWinToday || [];
+        allDocs = leaderboardData._allDocsMaxWinToday || [];
+      }
+      if (blocks[period]) {
+        blocks[period].innerHTML = data.map((player, index) => {
+          const isMe = player.id === myId;
+          let icon = '';
+          if (period === 'balance') icon = '💰';
+          else if (period === 'referrals') icon = '👫';
+          else if (period === 'winsToday') icon = '🏆';
+          else if (period === 'maxWinToday') icon = '💎';
+          return `<div class="leaderboard-item${isMe ? ' me' : ''}">
+            <span class="rank rank-${index + 1}">${index + 1}</span>
+            <img class="leader-avatar" src="${player.avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.name)}" alt="avatar">
+            <span class="player-name">${player.name}${player.isVip ? ' <span class=\"vip-badge\">VIP</span>' : ''}</span>
+            <span class="player-score">${player.value} ${icon}</span>
+          </div>`;
+        }).join('');
       }
       // Показываем позицию игрока
       let posBlock = document.getElementById('my-leaderboard-position');
       if (!posBlock) {
         posBlock = document.createElement('div');
         posBlock.id = 'my-leaderboard-position';
-        winnersEl?.parentNode?.appendChild(posBlock);
+        blocks[period]?.parentNode?.appendChild(posBlock);
       }
-      if (myPlace) {
-        posBlock.innerHTML = `<img class="leader-avatar" src="${myAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(myName)}" alt="avatar"> Ты на <b>${myPlace}</b> месте${myValue !== null ? `: <b>${myValue} ${period === 'balance' ? '💰' : '💎'}</b>` : ''}`;
+      if (allDocs.length > 0) {
+        const idx = allDocs.findIndex(u => u.id === myId);
+        if (idx !== -1) {
+          myPlace = idx + 1;
+          myValue = allDocs[idx].value;
+          myAvatar = allDocs[idx].avatarUrl || myAvatar;
+          myName = allDocs[idx].name || myName;
+          let icon = '';
+          if (period === 'balance') icon = '💰';
+          else if (period === 'referrals') icon = '👫';
+          else if (period === 'winsToday') icon = '🏆';
+          else if (period === 'maxWinToday') icon = '💎';
+          posBlock.innerHTML = `<img class="leader-avatar" src="${myAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(myName)}" alt="avatar"> Ты на <b>${myPlace}</b> месте${myValue !== null ? `: <b>${myValue} ${icon}</b>` : ''}`;
+        } else {
+          posBlock.innerHTML = '';
+        }
       } else {
         posBlock.innerHTML = '';
       }
@@ -1682,20 +1708,25 @@
       const ref = doc(db, 'users', userId);
       const snap = await getDoc(ref);
       let user = snap.exists() ? snap.data() : {};
-      // --- Сброс и обновление maxWinToday/maxWinWeek ---
+      // --- Сброс и обновление maxWinToday/maxWinWeek и winsToday ---
       const todayStr = getTodayStr();
       const weekStr = getWeekStr();
       let maxWinToday = user.maxWinToday || 0;
       let maxWinWeek = user.maxWinWeek || 0;
+      let winsToday = user.winsToday || 0;
       let lastWinDay = user.lastWinDay || '';
       let lastWinWeek = user.lastWinWeek || '';
       // Сброс если новый день/неделя
-      if (lastWinDay !== todayStr) maxWinToday = 0;
+      if (lastWinDay !== todayStr) {
+        maxWinToday = 0;
+        winsToday = 0;
+      }
       if (lastWinWeek !== weekStr) maxWinWeek = 0;
       // Обновление при выигрыше
       if (isWin) {
         maxWinToday = Math.max(maxWinToday, winAmount);
         maxWinWeek = Math.max(maxWinWeek, winAmount);
+        winsToday = winsToday + 1;
       }
       const data = {
         balance,
@@ -1703,6 +1734,7 @@
         maxWin: Math.max(maxWin, winAmount),
         maxWinToday,
         maxWinWeek,
+        winsToday,
         lastWinDay: todayStr,
         lastWinWeek: weekStr,
         name: userName
