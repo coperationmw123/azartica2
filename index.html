@@ -1751,6 +1751,9 @@
         maxWinWeek = Math.max(maxWinWeek, winAmount);
         winsToday = winsToday + 1;
       }
+      // Обновляем глобальные переменные для мгновенного UI
+      window.maxWinToday = maxWinToday;
+      window.winsToday = winsToday;
       const data = {
         balance,
         wins: isWin ? winsCount + 1 : winsCount,
@@ -1803,8 +1806,8 @@
       // maxWinEl.textContent = maxWin;
       const winsTodayEl = document.getElementById('wins-today');
       const maxWinTodayEl = document.getElementById('max-win-today');
-      if (winsTodayEl) winsTodayEl.textContent = typeof winsToday !== 'undefined' ? winsToday : 0;
-      if (maxWinTodayEl) maxWinTodayEl.textContent = typeof maxWinToday !== 'undefined' ? maxWinToday : 0;
+      if (winsTodayEl) winsTodayEl.textContent = typeof window.winsToday !== 'undefined' ? window.winsToday : 0;
+      if (maxWinTodayEl) maxWinTodayEl.textContent = typeof window.maxWinToday !== 'undefined' ? window.maxWinToday : 0;
       if (document.getElementById('user-id-display')) {
         document.getElementById('user-id-display').textContent = userId;
       }
