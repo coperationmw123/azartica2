@@ -1061,7 +1061,7 @@
 
   <!-- Нижняя панель вкладок -->
   <div id="bottom-tabs">
-    <div class="tab-item" id="tab-leaders">
+    <div class="tab-item" id="tab-leaders" style="order:1;">
       <span class="tab-icon" aria-label="Лидеры">
         <!-- Контурный кубок -->
         <svg viewBox="0 0 32 32" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1074,21 +1074,7 @@
       </span>
       <div class="tab-label">Лидеры</div>
     </div>
-    <div class="tab-item" id="tab-slots" style="order:2;">
-      <span class="tab-icon" aria-label="Слоты">
-        <!-- Контурный слот-аппарат в едином стиле -->
-        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="7" y="10" width="18" height="12" rx="4"/>
-          <rect x="11" y="14" width="2.8" height="5" rx="1.1"/>
-          <rect x="18.2" y="14" width="2.8" height="5" rx="1.1"/>
-          <circle cx="16" cy="20.5" r="1.3"/>
-          <path d="M16 10V7"/>
-          <circle cx="16" cy="7" r="1.3"/>
-        </svg>
-      </span>
-      <div class="tab-label">Слоты</div>
-    </div>
-    <div class="tab-item" id="tab-referral" style="order:3;">
+    <div class="tab-item" id="tab-referral" style="order:2;">
       <span class="tab-icon" aria-label="Рефералы">
         <!-- Контурные силуэты двух человек -->
         <svg viewBox="0 0 32 32" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1100,7 +1086,17 @@
       </span>
       <div class="tab-label">Рефералы</div>
     </div>
-    <div class="tab-item" id="tab-bonus">
+    <div class="tab-item" id="tab-slots" style="order:3;">
+      <span class="tab-icon" aria-label="Слоты">
+        <!-- Контурная иконка 777 в рамке -->
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="10" width="20" height="12" rx="4"/>
+          <text x="9" y="22" font-size="8" font-family="monospace" font-weight="bold" stroke="none" fill="currentColor">777</text>
+        </svg>
+      </span>
+      <div class="tab-label">Слоты</div>
+    </div>
+    <div class="tab-item" id="tab-bonus" style="order:4;">
       <span class="tab-icon" aria-label="Бонус">
         <!-- Контурный подарок (иконка бонуса) -->
         <svg viewBox="0 0 32 32" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1115,7 +1111,7 @@
       </span>
       <div class="tab-label">Бонус</div>
     </div>
-    <div class="tab-item" id="tab-topup">
+    <div class="tab-item" id="tab-topup" style="order:5;">
       <span class="tab-icon" aria-label="Пополнить">
         <!-- Контурные монеты -->
         <svg viewBox="0 0 32 32" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
