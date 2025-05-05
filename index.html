@@ -946,6 +946,23 @@
       0% { box-shadow: 0 0 12px 2px #ffe06699, 0 0 4px 1px #ffb30055; }
       100% { box-shadow: 0 0 24px 8px #ffe066cc, 0 0 12px 4px #ffb300cc; }
     }
+
+    /* Рамки для топ-3 мест в лидерборде */
+    .leaderboard-item.rank-1 {
+      border: 2.5px solid #ffd700 !important;
+      box-shadow: 0 0 12px 2px #ffe06688, 0 2px 8px #ffd70044;
+      background: linear-gradient(90deg, #fffbe622 0%, #ffe06622 100%);
+    }
+    .leaderboard-item.rank-2 {
+      border: 2.5px solid #c0c0c0 !important;
+      box-shadow: 0 0 8px 1px #c0c0c088;
+      background: linear-gradient(90deg, #f8f8f822 0%, #c0c0c022 100%);
+    }
+    .leaderboard-item.rank-3 {
+      border: 2.5px solid #cd7f32 !important;
+      box-shadow: 0 0 8px 1px #cd7f3288;
+      background: linear-gradient(90deg, #fffbe622 0%, #cd7f3222 100%);
+    }
   </style>
 </head>
 <body>
@@ -1320,13 +1337,19 @@
         }));
       } else if (period === 'maxWinToday') {
         snap = await getDocs(query(usersRef, orderBy('maxWinToday', 'desc'), limit(100)));
-        leaderboardData.maxWinToday = snap.docs.slice(0, 10).map(doc => ({
+        // Фильтруем только тех, у кого lastWinDay === сегодня
+        const todayStr = (function() {
+          const now = new Date();
+          return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())).toISOString().split('T')[0];
+        })();
+        const filtered = snap.docs.filter(doc => (doc.data().lastWinDay === todayStr));
+        leaderboardData.maxWinToday = filtered.slice(0, 10).map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
           value: doc.data().maxWinToday || 0,
           avatarUrl: doc.data().avatarUrl || null
         }));
-        leaderboardData._allDocsMaxWinToday = snap.docs.map(doc => ({
+        leaderboardData._allDocsMaxWinToday = filtered.map(doc => ({
           id: doc.id,
           name: doc.data().name || 'Гость',
           value: doc.data().maxWinToday || 0,
@@ -1375,7 +1398,12 @@
           else if (period === 'referrals') icon = '👫';
           else if (period === 'winsToday') icon = '🏆';
           else if (period === 'maxWinToday') icon = '💎';
-          return `<div class="leaderboard-item${isMe ? ' me' : ''}">
+          // Добавляем класс для топ-3
+          let topClass = '';
+          if (index === 0) topClass = ' rank-1';
+          else if (index === 1) topClass = ' rank-2';
+          else if (index === 2) topClass = ' rank-3';
+          return `<div class="leaderboard-item${topClass}${isMe ? ' me' : ''}">
             <span class="rank rank-${index + 1}">${index + 1}</span>
             <img class="leader-avatar" src="${player.avatarUrl || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.name)}" alt="avatar">
             <span class="player-name">${player.name}${player.isVip ? ' <span class=\"vip-badge\">VIP</span>' : ''}</span>
