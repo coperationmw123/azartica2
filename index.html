@@ -1098,7 +1098,7 @@
     <div class="modal-content" style="max-width:350px;">
       <button class="modal-close" onclick="closeTopupPopup()">×</button>
       <h4 style="color: #ffe066; margin-bottom: 18px;">⏳ Оплата недоступна</h4>
-      <p style="color:#fff;">На данный момент оплата недоступна.<br>Скоро откроем возможность покупки монет!</p>
+      <p style="color:#fff;">На данный момент оплата через раздел «Пополнить» недоступна.<br>Для покупки монет обращайтесь в поддержку — <a href=\"https://t.me/azartica_support\" target=\"_blank\" style=\"color:#ffe066; font-weight:bold; text-decoration:underline;\">@azartica_support</a></p>
     </div>
   </div>
 
@@ -2130,6 +2130,10 @@
         closeTopupPopup();
       }
     });
+
+    function closeTopupPopup() {
+      document.getElementById('topup-popup').style.display = 'none';
+    }
 
     // Добавляем функцию для выдачи бонуса при первом запуске игры
     async function onGameLaunch(telegramId) {
