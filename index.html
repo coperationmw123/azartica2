@@ -953,6 +953,9 @@
     <div class="modal-content">
       <button class="modal-close" onclick="closeBonusModal()">×</button>
       <h3 style="color: gold; margin-bottom: 20px;">🎁 Ежедневный бонус</h3>
+      <div id="bonus-progress-bar" style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:12px;margin-top:8px;gap:2px;width:100%;max-width:370px;">
+        <!-- JS: 7 ступеней -->
+      </div>
       <div id="bonus-streak-info" style="font-size:1.1em; color:#ffe066; margin-bottom:8px;">Серия: <span id="bonus-streak">1</span>/7 дней</div>
       <div id="bonus-timer-info" style="font-size:1em; color:#fffbe6a0; margin-bottom:8px; display:none;">До следующего бонуса: <span id="bonus-timer">00:00:00</span></div>
       <p id="bonus-amount-info" style="font-size: 1.2em; margin-bottom: 20px;">Вам доступен бонус: <span id="bonus-amount">1000</span> монет</p>
@@ -2179,15 +2182,35 @@
     const bonusTimerInfo = document.getElementById('bonus-timer-info');
     const bonusTimerEl = document.getElementById('bonus-timer');
     const claimBonusBtn = document.getElementById('claim-bonus');
+    const bonusProgressBar = document.getElementById('bonus-progress-bar');
 
     function getBonusAmount(streak) {
       return 1000 + (streak - 1) * 50;
+    }
+
+    function renderBonusProgressBar(streak) {
+      const steps = 7;
+      let html = '';
+      for (let i = 1; i <= steps; i++) {
+        const isActive = i === streak;
+        const isPassed = i < streak;
+        html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+          <div style="width:28px;height:28px;border-radius:50%;background:${isActive ? '#ffe066' : isPassed ? '#ffe06655' : '#fffbe622'};border:2px solid ${isActive ? '#ffb300' : '#ffe06655'};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.1em;color:${isActive ? '#2D1B4A' : '#ffe066a0'};box-shadow:${isActive ? '0 0 12px #ffe06699' : 'none'};transition:all .3s;">${i}</div>
+          <div style="font-size:0.95em;color:${isActive ? '#ffe066' : '#fffbe6a0'};margin-top:2px;">День ${i}</div>
+          <div style="font-size:0.92em;color:${isActive ? '#ffe066' : '#fffbe6a0'};">${getBonusAmount(i)} монет</div>
+        </div>`;
+        if (i < steps) {
+          html += `<div style="height:4px;width:18px;background:${i < streak ? '#ffe066' : '#fffbe622'};border-radius:2px;margin-bottom:12px;transition:all .3s;"></div>`;
+        }
+      }
+      bonusProgressBar.innerHTML = html;
     }
 
     function updateBonusModalUI() {
       bonusStreakEl.textContent = bonusStreak;
       bonusAmountEl.textContent = getBonusAmount(bonusStreak);
       bonusAmountInfo.innerHTML = `Вам доступен бонус: <span id="bonus-amount">${getBonusAmount(bonusStreak)}</span> монет`;
+      renderBonusProgressBar(bonusStreak);
     }
 
     function startBonusTimer() {
