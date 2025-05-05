@@ -963,6 +963,24 @@
       box-shadow: 0 0 8px 1px #cd7f3288;
       background: linear-gradient(90deg, #fffbe622 0%, #cd7f3222 100%);
     }
+
+    /* Анимация +N при увеличении баланса */
+    #balance-plus {
+      display: inline-block;
+      margin-left: 12px;
+      font-size: 1.1em;
+      color: #4CAF50;
+      font-weight: bold;
+      opacity: 0;
+      transform: translateY(0px);
+      transition: opacity 0.5s, transform 0.5s;
+      pointer-events: none;
+      text-shadow: 0 1px 8px #fffbe6cc;
+    }
+    #balance-plus.show {
+      opacity: 1;
+      transform: translateY(-16px);
+    }
   </style>
 </head>
 <body>
@@ -1810,10 +1828,18 @@
       const start = displayedBalance;
       const end = newValue;
       const startTime = performance.now();
-      // Вспышка при увеличении
+      // +N при увеличении
       if (end > start) {
-        balanceEl.classList.add('balance-flash');
-        setTimeout(() => balanceEl.classList.remove('balance-flash'), 500);
+        let plus = end - start;
+        let plusEl = document.getElementById('balance-plus');
+        if (!plusEl) {
+          plusEl = document.createElement('span');
+          plusEl.id = 'balance-plus';
+          balanceEl.parentNode.insertBefore(plusEl, balanceEl.nextSibling);
+        }
+        plusEl.textContent = `+${plus}`;
+        plusEl.classList.add('show');
+        setTimeout(() => plusEl.classList.remove('show'), 700);
       }
       function step(now) {
         const progress = Math.min((now - startTime) / duration, 1);
