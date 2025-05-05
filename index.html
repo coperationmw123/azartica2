@@ -1251,7 +1251,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, query, orderBy, limit, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB1tndSNBFy18H_uaAY1D-PSoC84QvBDgc",
@@ -1506,27 +1506,33 @@
       document.getElementById('leaders-modal').style.display = 'flex';
       updateLeaderboard(currentLeaderboardPeriod);
       setActiveTab('tab-leaders');
+      logStatEvent('tab_open', { tab: 'leaders' });
     });
     document.getElementById('tab-slots').addEventListener('click', () => {
       closeAllModals();
       document.getElementById('slots-modal').style.display = 'flex';
       setActiveTab('tab-slots');
+      logStatEvent('tab_open', { tab: 'slots' });
     });
     document.getElementById('tab-referral').addEventListener('click', () => {
       closeAllModals();
       document.getElementById('referral-modal').style.display = 'flex';
       updateReferralUI();
       setActiveTab('tab-referral');
+      logStatEvent('tab_open', { tab: 'referral' });
     });
     document.getElementById('tab-bonus').addEventListener('click', () => {
       closeAllModals();
       document.getElementById('daily-bonus-modal').style.display = 'flex';
       setActiveTab('tab-bonus');
+      logStatEvent('tab_open', { tab: 'bonus' });
+      loadBonusData();
     });
     document.getElementById('tab-topup').addEventListener('click', () => {
       closeAllModals();
       document.getElementById('topup-modal').style.display = 'flex';
       setActiveTab('tab-topup');
+      logStatEvent('tab_open', { tab: 'topup' });
     });
     function setActiveTab(tabId) {
       document.querySelectorAll('#bottom-tabs .tab-item').forEach(tab => {
@@ -1726,6 +1732,7 @@
     }
 
     async function loadUserData() {
+      sessionStart = Date.now();
       // Проверка: если не Telegram WebApp — не грузим/не пишем в Firebase
       if (!isTelegramWebApp()) {
         document.getElementById('telegram-warning').style.display = 'block';
@@ -1807,6 +1814,7 @@
       updateLeaderboard();
       updateReferralUI();
       await onGameLaunch(userId);
+      logStatEvent('login');
     }
 
     async function saveBalance(dateStr = null, isWin = false, winAmount = 0) {
@@ -1942,6 +1950,7 @@
 
     // --- Вынесенная функция для спина ---
     async function doSpin() {
+      logStatEvent('spin', { bet: +betSelect.value, autoSpin: autoSpinsLeft > 0 });
       // Блокируем кнопки на время спина
       spinBtn.disabled = true;
       autoSpinBtn.disabled = true;
@@ -2111,6 +2120,7 @@
     }
 
     claimBtn.addEventListener('click', async() => {
+      logStatEvent('bonus_claimed');
       claimBtn.style.display = 'none';
       // Получаем актуальные данные
       const ref = doc(db, 'users', userId);
@@ -2447,14 +2457,11 @@
       }
     }
 
-    // Загружать данные о бонусе при открытии модального окна
-    document.getElementById('tab-bonus').addEventListener('click', loadBonusData);
-    // Также при старте
-    loadBonusData();
-
-    // После получения бонуса убираем подсветку
-    claimBonusBtn.addEventListener('click', function() {
-      setBonusTabGlow(false);
+    // Логируем завершение сессии
+    window.addEventListener('beforeunload', () => {
+      const sessionEnd = Date.now();
+      const sessionDuration = sessionEnd - sessionStart;
+      logStatEvent('session_end', { sessionDuration });
     });
   </script>
 
